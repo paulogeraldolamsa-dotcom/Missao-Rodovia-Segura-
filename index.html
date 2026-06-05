@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Missão Rodovia Segura</title>
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+text-align:center;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+max-width:700px;
+margin:auto;
+}
+
+img{
+width:300px;
+border-radius:10px;
+}
+
+button{
+padding:10px;
+margin:5px;
+cursor:pointer;
+}
+
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h1>🚦 Missão Rodovia Segura</h1>
+
+<p>Digite seu nome:</p>
+
+<input id="nome">
+
+<button onclick="iniciar()">
+Começar
+</button>
+
+<div id="jogo"></div>
+
+</div>
+
+<script>
+
+let pontos=0;
+
+function iniciar(){
+
+document.getElementById("jogo").innerHTML=`
+
+<h2>Questão 1</h2>
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Brazil_road_sign_R-19.svg/240px-Brazil_road_sign_R-19.svg.png">
+
+<p>Qual a velocidade máxima?</p>
+
+<button onclick="acertou()">60 km/h</button>
+<button onclick="errou()">100 km/h</button>
+<button onclick="errou()">120 km/h</button>
+
+`;
+
+}
+
+function acertou(){
+
+pontos+=10;
+
+alert("Correto!");
+
+fase2();
+
+}
+
+function errou(){
+
+alert("Resposta incorreta");
+
+fase2();
+
+}
+
+function fase2(){
+
+document.getElementById("jogo").innerHTML=`
+
+<h2>Questão 2</h2>
+
+<img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2">
+
+<p>Você encontrou um tronco na pista.</p>
+
+<button onclick="finalizar(10)">
+Frear e sinalizar</button>
+
+<button onclick="finalizar(0)">
+Ignorar o obstáculo</button>
+
+`;
+
+}
+
+function finalizar(valor){
+
+pontos+=valor;
+
+document.getElementById("jogo").innerHTML=`
+
+<h2>Fim do jogo</h2>
+
+<p>Pontuação: ${pontos}</p>
+
+`;
+
+}
+
+</script>
+
+</body>
+</html>
