@@ -1,130 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Missão Rodovia Segura</title>
 <style>
-
-body{
-font-family:Arial;
-background:#f2f2f2;
-text-align:center;
-padding:20px;
-}
-
-.card{
-background:white;
-padding:20px;
-border-radius:10px;
-max-width:700px;
-margin:auto;
-}
-
-img{
-width:300px;
-border-radius:10px;
-}
-
-button{
-padding:10px;
-margin:5px;
-cursor:pointer;
-}
-
+body{font-family:Arial,sans-serif;background:#eef3f7;margin:0}
+.container{max-width:900px;margin:auto;padding:20px}
+.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+button{padding:10px 14px;margin:6px;border:none;border-radius:8px;cursor:pointer}
+.option{display:block;width:100%;text-align:left}
+#progress{height:20px;background:#ddd;border-radius:10px;overflow:hidden}
+#bar{height:100%;width:0;background:#4caf50}
+img{max-width:100%;max-height:260px;border-radius:8px}
 </style>
 </head>
 <body>
-
+<div class="container">
 <div class="card">
-
 <h1>🚦 Missão Rodovia Segura</h1>
-
-<p>Digite seu nome:</p>
-
-<input id="nome">
-
-<button onclick="iniciar()">
-Começar
-</button>
-
-<div id="jogo"></div>
-
+<div id="app"></div>
+</div>
 </div>
 
 <script>
+const WEBAPP="https://script.google.com/macros/s/AKfycbz7e3qLtkzdrnE5OcodUEq43MDW7xuFBivdBtuqiD-87vquU_dkPg1RWi4GGDnqDfp6/exec";
 
-let pontos=0;
-
-function iniciar(){
-
-document.getElementById("jogo").innerHTML=`
-
-<h2>Questão 1</h2>
-
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Brazil_road_sign_R-19.svg/240px-Brazil_road_sign_R-19.svg.png">
-
-<p>Qual a velocidade máxima?</p>
-
-<button onclick="acertou()">60 km/h</button>
-<button onclick="errou()">100 km/h</button>
-<button onclick="errou()">120 km/h</button>
-
-`;
-
+const perguntas=[];
+for(let i=1;i<=30;i++){
+ perguntas.push({
+  pergunta:`Pergunta ${i}: Segurança viária e engenharia rodoviária`,
+  imagem:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Brazil_road_sign_R-19.svg/240px-Brazil_road_sign_R-19.svg.png",
+  respostas:["Resposta correta","Alternativa B","Alternativa C","Alternativa D"],
+  correta:0
+ });
 }
 
-function acertou(){
+let jogador="",quiz=[],idx=0,pontos=0;
 
-pontos+=10;
+function embaralhar(a){return [...a].sort(()=>Math.random()-0.5);}
 
-alert("Correto!");
-
-fase2();
-
+function inicio(){
+ document.getElementById('app').innerHTML=`
+ <p>Digite seu nome:</p>
+ <input id="nome" style="padding:8px;width:250px">
+ <br><br>
+ <button onclick="comecar()">Iniciar Missão</button>`;
 }
 
-function errou(){
-
-alert("Resposta incorreta");
-
-fase2();
-
+function comecar(){
+ jogador=document.getElementById('nome').value.trim();
+ if(!jogador){alert("Digite um nome");return;}
+ quiz=embaralhar(perguntas).slice(0,15);
+ idx=0;pontos=0;
+ mostrar();
 }
 
-function fase2(){
-
-document.getElementById("jogo").innerHTML=`
-
-<h2>Questão 2</h2>
-
-<img src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2">
-
-<p>Você encontrou um tronco na pista.</p>
-
-<button onclick="finalizar(10)">
-Frear e sinalizar</button>
-
-<button onclick="finalizar(0)">
-Ignorar o obstáculo</button>
-
-`;
-
+function mostrar(){
+ let p=quiz[idx];
+ let html=`<div id="progress"><div id="bar" style="width:${(idx/15)*100}%"></div></div>
+ <p>Pergunta ${idx+1} de 15</p>
+ <img src="${p.imagem}">
+ <h3>${p.pergunta}</h3>`;
+ p.respostas.forEach((r,i)=>{
+  html+=`<button class="option" onclick="resp(${i})">${r}</button>`;
+ });
+ document.getElementById('app').innerHTML=html;
 }
 
-function finalizar(valor){
-
-pontos+=valor;
-
-document.getElementById("jogo").innerHTML=`
-
-<h2>Fim do jogo</h2>
-
-<p>Pontuação: ${pontos}</p>
-
-`;
-
+function resp(i){
+ if(i===quiz[idx].correta)pontos++;
+ idx++;
+ if(idx<15)mostrar(); else finalizar();
 }
 
+async function finalizar(){
+ const erros=15-pontos;
+ try{
+ await fetch(WEBAPP,{
+ method:"POST",
+ body:JSON.stringify({nome:jogador,pontos:pontos})
+ });
+ }catch(e){}
+ let classe="Aprendiz da Segurança";
+ if(pontos>=13) classe="Engenheiro da Rodovia Segura";
+ else if(pontos>=10) classe="Especialista Viário";
+ else if(pontos>=7) classe="Guardião da Estrada";
+
+ let ranking=[];
+ try{
+ const r=await fetch(WEBAPP);
+ ranking=await r.json();
+ }catch(e){}
+
+ let rank="<ol>";
+ ranking.forEach(x=>rank+=`<li>${x.nome} - ${x.pontos}</li>`);
+ rank+="</ol>";
+
+ document.getElementById('app').innerHTML=`
+ <h2>Missão Concluída</h2>
+ <p><b>${jogador}</b></p>
+ <p>Acertos: ${pontos}</p>
+ <p>Erros: ${erros}</p>
+ <p>${classe}</p>
+ <h3>Top 10</h3>
+ ${rank}
+ <button onclick="inicio()">Jogar novamente</button>`;
+}
+inicio();
 </script>
-
 </body>
 </html>
